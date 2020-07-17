@@ -18,307 +18,254 @@ import com.github.hydrazine.util.ProxyChecker;
  * 
  * @author xTACTIXzZ
  * 
- * This module steals the skin of a minecraft player
+ *         This module steals the skin of a minecraft player
  *
  */
-public class ProxyCheckerModule implements Module
-{
-	// Create new file where the configuration will be stored (Same folder as jar file)
-	private File configFile = new File(ClassLoader.getSystemClassLoader().getResource(".").getPath() + ".module_" + getName() + ".conf");
-	
+public class ProxyCheckerModule implements Module {
+	// Create new file where the configuration will be stored (Same folder as
+	// jar file)
+	private File configFile = new File(
+			ClassLoader.getSystemClassLoader().getResource(".").getPath() + ".module_" + getName() + ".conf");
+
 	// Configuration settings are stored in here
 	private ModuleSettings settings = new ModuleSettings(configFile);
-	
+
 	// Output File
 	private File outputFile;
-	
+
 	@Override
-	public String getName() 
-	{
+	public String getName() {
 		return "proxychecker";
 	}
 
 	@Override
-	public String getDescription() 
-	{
+	public String getDescription() {
 		return "Checks the online status of the proxies supplied by \'-ap\' or \'-sp\'.";
 	}
 
 	@Override
-	public void start() 
-	{		
-		if(!configFile.exists())
-		{
+	public void start() {
+		if (!configFile.exists()) {
 			settings.createConfigFile();
 		}
-		
+
 		settings.load();
-				
-		if(Hydrazine.settings.hasSetting("authproxy"))
-		{
-			if(Hydrazine.settings.getSetting("authproxy").contains(":"))
-			{
+
+		if (Hydrazine.settings.hasSetting("authproxy")) {
+			if (Hydrazine.settings.getSetting("authproxy").contains(":")) {
 				Proxy p = Authenticator.getAuthProxy();
 				boolean isOnline = ProxyChecker.checkAuthProxy(p);
 				InetSocketAddress addr = (InetSocketAddress) p.address();
 
-				if(isOnline)
-					System.out.println(Hydrazine.infoPrefix + addr.getAddress().getHostAddress() + ":" + addr.getPort() + " is working");
+				if (isOnline)
+					System.out.println(Hydrazine.infoPrefix + addr.getAddress().getHostAddress() + ":" + addr.getPort()
+							+ " is working");
 				else
-					System.out.println(Hydrazine.infoPrefix + addr.getAddress().getHostAddress() + ":" + addr.getPort() + " doesn't work");
-				
-				if(settings.containsKey("outputFile"))
-				{
+					System.out.println(Hydrazine.infoPrefix + addr.getAddress().getHostAddress() + ":" + addr.getPort()
+							+ " doesn't work");
+
+				if (settings.containsKey("outputFile")) {
 					BufferedWriter w = null;
 					outputFile = new File(settings.getProperty("outputFile"));
-					
-					try 
-					{
+
+					try {
 						w = new BufferedWriter(new FileWriter(outputFile, true));
-					} 
-					catch (IOException e) 
-					{
+					} catch (IOException e) {
 						e.printStackTrace();
-						
+
 						System.exit(1);
 					}
-					
-					try
-					{
+
+					try {
 						w.write(addr.getAddress().getHostAddress() + ":" + addr.getPort());
 						w.newLine();
 						w.close();
-					} 
-					catch (IOException e) 
-					{
+					} catch (IOException e) {
 						e.printStackTrace();
 					}
-					
-					System.out.println(Hydrazine.infoPrefix + "Saved working proxies to: " + outputFile.getAbsolutePath());
+
+					System.out.println(
+							Hydrazine.infoPrefix + "Saved working proxies to: " + outputFile.getAbsolutePath());
 				}
-			}
-			else
-			{
+			} else {
 				File authFile = new File(Hydrazine.settings.getSetting("authproxy"));
-				
-				if(authFile.exists())
-				{
+
+				if (authFile.exists()) {
 					BufferedWriter w = null;
 					FileFactory authFactory = new FileFactory(authFile);
 					Proxy[] proxies = authFactory.getProxies(Proxy.Type.HTTP);
-					
-					if(settings.containsKey("outputFile"))
-					{
+
+					if (settings.containsKey("outputFile")) {
 						outputFile = new File(settings.getProperty("outputFile"));
-						
-						try 
-						{
+
+						try {
 							w = new BufferedWriter(new FileWriter(outputFile, true));
-						} 
-						catch (IOException e) 
-						{
+						} catch (IOException e) {
 							e.printStackTrace();
-							
+
 							System.exit(1);
 						}
 					}
-					
-					for(Proxy p : proxies)
-					{
+
+					for (Proxy p : proxies) {
 						boolean isOnline = ProxyChecker.checkAuthProxy(p);
 						InetSocketAddress addr = (InetSocketAddress) p.address();
 
-						if(isOnline)
-							System.out.println(Hydrazine.infoPrefix + addr.getAddress().getHostAddress() + ":" + addr.getPort() + " is working");
+						if (isOnline)
+							System.out.println(Hydrazine.infoPrefix + addr.getAddress().getHostAddress() + ":"
+									+ addr.getPort() + " is working");
 						else
-							System.out.println(Hydrazine.infoPrefix + addr.getAddress().getHostAddress() + ":" + addr.getPort() + " doesn't work");
-						
-						if(settings.containsKey("outputFile"))
-						{	
-							try
-							{
+							System.out.println(Hydrazine.infoPrefix + addr.getAddress().getHostAddress() + ":"
+									+ addr.getPort() + " doesn't work");
+
+						if (settings.containsKey("outputFile")) {
+							try {
 								w.write(addr.getAddress().getHostAddress() + ":" + addr.getPort());
 								w.newLine();
-							} 
-							catch (IOException e) 
-							{
+							} catch (IOException e) {
 								e.printStackTrace();
 							}
-							
-							System.out.println(Hydrazine.infoPrefix + "Saved working proxies to: " + outputFile.getAbsolutePath());
+
+							System.out.println(
+									Hydrazine.infoPrefix + "Saved working proxies to: " + outputFile.getAbsolutePath());
 						}
 					}
-					
-					if(w != null)
-					{
-						try 
-						{
+
+					if (w != null) {
+						try {
 							w.close();
-						}
-						catch (IOException e) 
-						{
+						} catch (IOException e) {
 							e.printStackTrace();
 						}
 					}
-				}
-				else
-				{
-					System.out.println(Hydrazine.errorPrefix + "Invalid value for switch \'-ap\'");					
+				} else {
+					System.out.println(Hydrazine.errorPrefix + "Invalid value for switch \'-ap\'");
 				}
 			}
-		}
-		else if(Hydrazine.settings.hasSetting("socksproxy"))
-		{
-			if(Hydrazine.settings.getSetting("socksproxy").contains(":"))
-			{
-				Proxy p = new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(Hydrazine.settings.getSetting("socksproxy").split(":")[0], Integer.valueOf(Hydrazine.settings.getSetting("socksproxy").split(":")[1])));
+		} else if (Hydrazine.settings.hasSetting("socksproxy")) {
+			if (Hydrazine.settings.getSetting("socksproxy").contains(":")) {
+				Proxy p = new Proxy(Proxy.Type.SOCKS,
+						new InetSocketAddress(Hydrazine.settings.getSetting("socksproxy").split(":")[0],
+								Integer.valueOf(Hydrazine.settings.getSetting("socksproxy").split(":")[1])));
 				boolean isOnline = ProxyChecker.checkSocksProxy(p);
 				InetSocketAddress addr = (InetSocketAddress) p.address();
 
-				if(isOnline)
-					System.out.println(Hydrazine.infoPrefix + addr.getAddress().getHostAddress() + ":" + addr.getPort() + " is working");
+				if (isOnline)
+					System.out.println(Hydrazine.infoPrefix + addr.getAddress().getHostAddress() + ":" + addr.getPort()
+							+ " is working");
 				else
-					System.out.println(Hydrazine.infoPrefix + addr.getAddress().getHostAddress() + ":" + addr.getPort() + " doesn't work");
-				
-				if(settings.containsKey("outputFile"))
-				{
+					System.out.println(Hydrazine.infoPrefix + addr.getAddress().getHostAddress() + ":" + addr.getPort()
+							+ " doesn't work");
+
+				if (settings.containsKey("outputFile")) {
 					BufferedWriter w = null;
 					outputFile = new File(settings.getProperty("outputFile"));
-					
-					try 
-					{
+
+					try {
 						w = new BufferedWriter(new FileWriter(outputFile, true));
-					} 
-					catch (IOException e) 
-					{
+					} catch (IOException e) {
 						e.printStackTrace();
-						
+
 						System.exit(1);
 					}
-					
-					try
-					{
+
+					try {
 						w.write(addr.getAddress().getHostAddress() + ":" + addr.getPort());
 						w.newLine();
 						w.close();
-					} 
-					catch (IOException e) 
-					{
+					} catch (IOException e) {
 						e.printStackTrace();
 					}
-					
-					System.out.println(Hydrazine.infoPrefix + "Saved working proxies to: " + outputFile.getAbsolutePath());
+
+					System.out.println(
+							Hydrazine.infoPrefix + "Saved working proxies to: " + outputFile.getAbsolutePath());
 				}
-			}
-			else
-			{
+			} else {
 				File socksFile = new File(Hydrazine.settings.getSetting("socksproxy"));
-				
-				if(socksFile.exists())
-				{
+
+				if (socksFile.exists()) {
 					BufferedWriter w = null;
 					FileFactory socksFactory = new FileFactory(socksFile);
 					Proxy[] proxies = socksFactory.getProxies(Proxy.Type.SOCKS);
-					
-					if(settings.containsKey("outputFile"))
-					{
+
+					if (settings.containsKey("outputFile")) {
 						outputFile = new File(settings.getProperty("outputFile"));
-						
-						try 
-						{
+
+						try {
 							w = new BufferedWriter(new FileWriter(outputFile, true));
-						} 
-						catch (IOException e) 
-						{
+						} catch (IOException e) {
 							e.printStackTrace();
-							
+
 							System.exit(1);
 						}
 					}
-					
-					for(Proxy p : proxies)
-					{
+
+					for (Proxy p : proxies) {
 						boolean isOnline = ProxyChecker.checkSocksProxy(p);
 						InetSocketAddress addr = (InetSocketAddress) p.address();
 
-						if(isOnline)
-							System.out.println(Hydrazine.infoPrefix + addr.getAddress().getHostAddress() + ":" + addr.getPort() + " is working");
+						if (isOnline)
+							System.out.println(Hydrazine.infoPrefix + addr.getAddress().getHostAddress() + ":"
+									+ addr.getPort() + " is working");
 						else
-							System.out.println(Hydrazine.infoPrefix + addr.getAddress().getHostAddress() + ":" + addr.getPort() + " doesn't work");
-						
-						if(settings.containsKey("outputFile"))
-						{	
-							try
-							{
+							System.out.println(Hydrazine.infoPrefix + addr.getAddress().getHostAddress() + ":"
+									+ addr.getPort() + " doesn't work");
+
+						if (settings.containsKey("outputFile")) {
+							try {
 								w.write(addr.getAddress().getHostAddress() + ":" + addr.getPort());
 								w.newLine();
-							} 
-							catch (IOException e) 
-							{
+							} catch (IOException e) {
 								e.printStackTrace();
 							}
-							
-							System.out.println(Hydrazine.infoPrefix + "Saved working proxies to: " + outputFile.getAbsolutePath());
+
+							System.out.println(
+									Hydrazine.infoPrefix + "Saved working proxies to: " + outputFile.getAbsolutePath());
 						}
 					}
-					
-					if(w != null)
-					{
-						try 
-						{
+
+					if (w != null) {
+						try {
 							w.close();
-						}
-						catch (IOException e) 
-						{
+						} catch (IOException e) {
 							e.printStackTrace();
 						}
 					}
-				}
-				else
-				{
-					System.out.println(Hydrazine.errorPrefix + "Invalid value for switch \'-sp\'");					
+				} else {
+					System.out.println(Hydrazine.errorPrefix + "Invalid value for switch \'-sp\'");
 				}
 			}
-		}
-		else
-		{
+		} else {
 			System.out.println(Hydrazine.errorPrefix + "Missing proxy option (-ap or -sp)");
 		}
 	}
 
 	@Override
-	public void stop(String cause)
-	{
+	public void stop(String cause) {
 		System.out.println(Hydrazine.infoPrefix + "Stopping module " + getName() + ": " + cause);
-		
+
 		System.exit(0);
 	}
 
 	@Override
-	public void configure()
-	{
+	public void configure() {
 		String answer = ModuleSettings.askUser("Output file:");
-		
-		if(!(answer.equals("") || answer.isEmpty()))
-		{
+
+		if (!(answer.equals("") || answer.isEmpty())) {
 			settings.setProperty("outputFile", answer);
-		}
-		else
-		{
+		} else {
 			settings.remove("outputFile");
 		}
-				
+
 		// Create configuration file if not existing
-		if(!configFile.exists())
-		{
+		if (!configFile.exists()) {
 			boolean success = settings.createConfigFile();
-			
-			if(!success)
-			{
+
+			if (!success) {
 				return;
 			}
 		}
-		
+
 		// Store configuration variables
 		settings.store();
 	}
