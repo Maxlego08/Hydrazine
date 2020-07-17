@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import org.spacehq.mc.protocol.MinecraftProtocol;
 
 import com.github.hydrazine.Hydrazine;
 import com.github.hydrazine.minecraft.Authenticator;
@@ -13,6 +12,7 @@ import com.github.hydrazine.minecraft.Credentials;
 import com.github.hydrazine.module.Module;
 import com.github.hydrazine.module.ModuleSettings;
 import com.github.hydrazine.util.FileFactory;
+import com.github.steveice10.mc.protocol.MinecraftProtocol;
 
 public class AltCheckerModule implements Module
 {

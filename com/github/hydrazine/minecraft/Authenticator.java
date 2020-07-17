@@ -5,12 +5,11 @@ import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.Random;
 
-import org.spacehq.mc.auth.exception.request.RequestException;
-import org.spacehq.mc.protocol.MinecraftProtocol;
-
 import com.github.hydrazine.Hydrazine;
 import com.github.hydrazine.util.FileFactory;
 import com.github.hydrazine.util.UsernameGenerator;
+import com.github.steveice10.mc.auth.exception.request.RequestException;
+import com.github.steveice10.mc.protocol.MinecraftProtocol;
 
 /**
  * 
